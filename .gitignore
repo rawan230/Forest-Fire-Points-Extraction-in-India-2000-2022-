@@ -1,0 +1,35 @@
+# ── Raw / source data (large, external — see README for download links) ────
+fire_archive_M-C61_772720.csv
+LAND USE- LAND COVER DATA(india)/
+NDVI_DATA_INDIA_/
+spatial dataset understanding/
+
+# Country boundary is unused by the Step 1 pipeline (state boundary is used
+# instead — see notebook Step 4 design notes); not tracked to keep repo lean.
+India_Country_Boundary.shp
+India_Country_Boundary.shx
+
+# ── Generated pipeline outputs (large, reproducible by re-running the notebook) ──
+Forest_Fire_Outputs/lulc_extracted/
+Forest_Fire_Outputs/monthly_records/
+Forest_Fire_Outputs/forest_fire_points/
+Forest_Fire_Outputs/all_fire_india_merged.csv
+Forest_Fire_Outputs/all_forest_fires_*.csv
+Forest_Fire_Outputs/boundary/
+
+# Keep small, shareable results:
+!Forest_Fire_Outputs/extraction_summary.csv
+!Forest_Fire_Outputs/plots/
+
+# ── Jupyter / Python ─────────────────────────────────────────────────────
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ── Editor / tool housekeeping ───────────────────────────────────────────
+.claude/
+.vscode/
+Thumbs.db
+.DS_Store

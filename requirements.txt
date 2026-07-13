@@ -1,0 +1,21 @@
+# Forest Fire Points Extraction Pipeline — dependencies
+# Install with: pip install -r requirements.txt
+
+geopandas
+netCDF4
+numpy
+pandas
+matplotlib
+tqdm
+pyogrio
+shapely
+jupyter
+nbconvert
+
+# ── Optional: GPU acceleration (NVIDIA CUDA 12.x on Windows/Linux) ──────────
+# The pipeline auto-detects CuPy and falls back to NumPy (CPU) if these are
+# not installed or no compatible GPU is present. Uncomment to enable GPU:
+# cupy-cuda12x
+# nvidia-cuda-runtime-cu12
+# nvidia-cuda-nvrtc-cu12
+# nvidia-cuda-nvcc-cu12
