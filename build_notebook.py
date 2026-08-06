@@ -141,10 +141,14 @@ cells.append(md(r"""## ⚙️ Step 2 — Configuration
 cells.append(code(r"""# ═══════════════════════════════════════════════════════════════
 #  CONFIGURE PATHS — all local to this project folder
 # ═══════════════════════════════════════════════════════════════
-BASE_DIR = r"D:\FOREST FIRE MAPPING(INDIA)"
+BASE_DIR = r"D:\FOREST FIRE MAPPING(INDIA)\Forest fire Extraction in INDIA(2000-2022)"
+# Raw ESA-CCI/C3S LULC ZIP archives (~4.5 GB) are not duplicated per step folder --
+# they live once at the project root and every step that needs them (just this one)
+# reads them from there.
+PROJECT_ROOT_DIR = r"D:\FOREST FIRE MAPPING(INDIA)"
 
 FIRE_CSV_PATH = os.path.join(BASE_DIR, "fire_archive_M-C61_772720.csv")
-LULC_DIR      = os.path.join(BASE_DIR, "LAND USE- LAND COVER DATA(india)")
+LULC_DIR      = os.path.join(PROJECT_ROOT_DIR, "LAND USE- LAND COVER DATA(india)")
 # India_State_Boundary.shp (37 state/UT polygons) is used instead of
 # India_Country_Boundary.shp: the country file has ~60 degenerate near-zero-area
 # sliver polygons near the Palk Strait (79-79.5°E, 9-9.3°N) that don't affect
@@ -692,7 +696,7 @@ nb = {
     "nbformat_minor": 5,
 }
 
-out_path = r"D:\FOREST FIRE MAPPING(INDIA)\Forest_Fire_Extraction_Pipeline.ipynb"
+out_path = r"D:\FOREST FIRE MAPPING(INDIA)\Forest fire Extraction in INDIA(2000-2022)\FOREST_FIRE_POINTS_EXTRACTION(INDIA).ipynb"
 with open(out_path, "w", encoding="utf-8") as f:
     json.dump(nb, f, ensure_ascii=False, indent=1)
 
