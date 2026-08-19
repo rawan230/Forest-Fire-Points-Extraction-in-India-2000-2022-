@@ -67,15 +67,19 @@ Forest_Fire_Outputs/
 ├── all_fire_india_merged.csv          # all MODIS fire points clipped to India, 2000–2022
 ├── all_forest_fires_2000_2022.csv     # combined forest-only fire points
 ├── extraction_summary.csv             # one row per year — the headline results (tracked)
+├── Monthly_BurnedArea_MCD64A1.csv     # MCD64A1.061 monthly burned area, 266 months (tracked)
+├── Annual_BurnedArea_vs_FireCount.csv # annual burned area vs. fire count + correlation inputs (tracked)
+├── Biswas2025_AnnualFireCount_Comparison.csv  # year-by-year check vs. Biswas et al. (tracked)
 ├── boundary/                          # dissolved India boundary (GeoPackage)
 ├── lulc_extracted/                    # extracted yearly LULC NetCDFs
 ├── forest_fire_points/                # one CSV per year
 ├── monthly_records/<year>/            # one CSV per year-month
-└── plots/                             # 6 summary PNGs (tracked)
+└── plots/                             # summary PNGs incl. BurnedArea_vs_FireCount.png (tracked)
 ```
 
-Only `extraction_summary.csv` and `plots/` are tracked in git — everything
-else is large and reproducible by re-running the notebook (see `.gitignore`).
+Only `extraction_summary.csv`, the three burned-area/Biswas comparison CSVs
+above, and `plots/` are tracked in git — everything else is large and
+reproducible by re-running the notebook (see `.gitignore`).
 
 ### Latest results (23 years, 2000–2022)
 
@@ -112,6 +116,35 @@ else is large and reproducible by re-running the notebook (see `.gitignore`).
 
 All 27 study years (2000–2022) now use **real** ESA-CCI/C3S LULC data — no
 nearest-year fallback is used anywhere in this range.
+
+### Supplementary validation: burned area vs. fire count (MCD64A1.061)
+
+An independent cross-check against MODIS MCD64A1.061 burned-area, aggregated
+to the same annual (2000–2022) grain as this step's own forest-fire-point
+counts. Recomputed 2026-08-20 from a complete, single-mosaic AppEEARS
+download covering the full study period `2000-11-01`–`2022-12-15` with no
+month gaps (an earlier version of this analysis was run on a source dataset
+missing January/February every year and had to restrict both series to a
+Mar–Dec-matched subset; that limitation is now resolved).
+
+- **Pearson r = 0.915** (p < 0.0001), **Spearman ρ = 0.835** (p < 0.0001),
+  n = 23 years (2000–2022; full Jan–Dec for 2001–2021, partial for 2000
+  [Nov–Dec only, matching the study start] and 2022 [through the Dec 2022
+  monthly composite, matching the study's Dec 15 end])
+- Files: `Forest_Fire_Outputs/Monthly_BurnedArea_MCD64A1.csv` (266 months),
+  `Forest_Fire_Outputs/Annual_BurnedArea_vs_FireCount.csv` (23 years),
+  `Forest_Fire_Outputs/plots/BurnedArea_vs_FireCount.png`
+- Burned-pixel mask: `(band > 0) & (band <= 366)` (excludes MCD64A1's
+  -2=water, -1=nodata/void, 0=unburned fill values); per-pixel area computed
+  with a latitude-corrected formula (km² varies with `cos(latitude)` by row),
+  not a flat degree×111km conversion.
+- A separate year-by-year comparison against Biswas et al. (2025)'s own
+  reported annual fire-count percentages (`Biswas2025_AnnualFireCount_
+  Comparison.csv`) uses this step's full-year forest-fire-point counts
+  directly (independent of the burned-area gap above) and is unaffected by
+  this recomputation: this project's counts still run 0.5–2.4% higher than
+  Biswas et al.'s derived counts across all 20 overlapping years
+  (2001–2020).
 
 ### Repo structure
 
