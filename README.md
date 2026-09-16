@@ -146,6 +146,33 @@ Mar–Dec-matched subset; that limitation is now resolved).
   Biswas et al.'s derived counts across all 20 overlapping years
   (2001–2020).
 
+### Forest-masked burned area (2026-09-16, closes a real magnitude gap above)
+
+The r=0.915 burned-area validation above is computed **across all of India's land
+cover**, not just forest — a genuine mismatch against Biswas et al.'s Fig. 7d, which is
+forest-scoped throughout their paper. Re-derived directly from the raw AppEEARS
+GeoTIFFs (`compute_forest_masked_burned_area.py`), applying this step's own
+`FOREST_CODES` mask per calendar year:
+
+| Series (2001–2020) | Min | Max | Mean | Pearson r vs. Biswas Fig. 7d |
+|---|---:|---:|---:|---:|
+| All land cover (above) | 24,011 km² (2001) | 102,978 km² (2009) | 74,139 km² | 0.8465 |
+| **Forest-masked (new)** | **9,392 km² (2002)** | **51,455 km² (2009)** | **30,724 km²** | **0.9044** |
+| Biswas et al. (2025), Fig. 7d (digitized) | ~2,100 km² (2002) | ~17,200 km² (2009) | ~8,700 km² | — |
+
+Forest-masking makes both the minimum year (2002) and maximum year (2009) match
+Biswas et al.'s chart exactly (all-land-cover's minimum was 2001, one year off) and
+improves the correlation — but a residual ~4× magnitude gap remains, not fully
+explained (plausible causes: a stricter forest-class definition or additional
+QA/confidence filtering in Biswas et al.'s own unpublished processing). Disclosed
+plainly rather than forced to close. The forest-masked series also correlates more
+tightly with this step's own forest-fire-point counts than the all-land-cover series
+did (r=0.9345 vs. 0.9149) — the expected direction, since both measure the same
+forest-fire population. Files: `Forest_Fire_Outputs/Monthly_BurnedArea_ForestVsAll.csv`,
+`Forest_Fire_Outputs/Annual_BurnedArea_ForestVsAll.csv`,
+`Forest_Fire_Outputs/plots/BurnedArea_ForestVsAll_vs_Biswas.png`. Full detail:
+`Step1_FirePointExtraction_Audit_and_Documentation.md` (project root).
+
 ### Repo structure
 
 ```
