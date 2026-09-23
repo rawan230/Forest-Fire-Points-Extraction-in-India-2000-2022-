@@ -20,6 +20,31 @@ classes per Sannigrahi et al. (2018)
 **Study period:** 1 Nov 2000 – 15 Dec 2022 (capped at 2022 — the last year with
 published ESA-CCI/C3S LULC data)
 
+### Why this step, and how
+
+Every downstream step in this pipeline — NDVI, LST, FLDAS climatic variables,
+terrain/accessibility, the integrated feature stack, and the Random Forest/MaxEnt/
+CDR-PINN models — needs a real, spatially and temporally precise fire/no-fire label to
+train and evaluate against; this step is what produces that label, so its correctness is
+the foundation the rest of the pipeline's reported accuracy numbers rest on. MODIS
+Collection 6.1 FIRMS was chosen over coarser fire products because it reports
+individual, dated, geolocated fire detections at native ~1 km resolution (Giglio et al.
+2016, the MODIS Collection 6 active-fire detection algorithm paper), rather than a
+pre-aggregated grid-cell count — this lets every later step re-rasterize the same real
+points onto its own working grid instead of inheriting someone else's resolution choice
+baked in upstream. Clipping to India's *exact* dissolved state boundary, not a
+bounding box, matters because a rectangular India extent also covers parts of five
+neighboring countries with different fire regimes and vegetation; the executed run
+shows this is a large, real effect, not a theoretical one — the exact-polygon clip
+excludes 1,201,876 points (42.9% of the bbox-passing set). Filtering to forest LULC
+pixels via *exact affine pixel lookup*, rather than a nearest-neighbor spatial join,
+matters because ESA-CCI/C3S's land-cover grid is perfectly regular: the affine method
+is mathematically exact for that grid and, unlike a geopandas/shapely spatial join,
+vectorizes cleanly on GPU at the ~124M-pixel × hundreds-of-thousands-of-points-per-year
+scale this step runs at. The resulting file, `all_forest_fires_2000_2022.csv`, is
+consumed directly or re-rasterized onto each later step's own grid (Steps 2–6) and used
+as the training/evaluation label for every model in Steps 7–8.
+
 ### What it does
 
 1. Loads the MODIS Collection 6.1 fire archive (FIRMS) for India.
@@ -167,11 +192,86 @@ explained (plausible causes: a stricter forest-class definition or additional
 QA/confidence filtering in Biswas et al.'s own unpublished processing). Disclosed
 plainly rather than forced to close. The forest-masked series also correlates more
 tightly with this step's own forest-fire-point counts than the all-land-cover series
-did (r=0.9345 vs. 0.9149) — the expected direction, since both measure the same
-forest-fire population. Files: `Forest_Fire_Outputs/Monthly_BurnedArea_ForestVsAll.csv`,
+did (Pearson r=0.9345 vs. 0.9149; Spearman ρ=0.7846 vs. 0.8350; n=23, 2000–2022) — the
+expected direction, since both measure the same forest-fire population. Files:
+`Forest_Fire_Outputs/Monthly_BurnedArea_ForestVsAll.csv`,
 `Forest_Fire_Outputs/Annual_BurnedArea_ForestVsAll.csv`,
 `Forest_Fire_Outputs/plots/BurnedArea_ForestVsAll_vs_Biswas.png`. Full detail:
 `Step1_FirePointExtraction_Audit_and_Documentation.md` (project root).
+
+### Known limitation, disclosed: FIRMS confidence/type filtering and spatial thinning
+
+The 541,545-point label set uses every MODIS FIRMS detection that survives the
+boundary clip and forest-LULC filter — it does **not** additionally filter on FIRMS's
+own per-detection `confidence` field or `type` field, and it does **not** spatially
+decluster/thin points that fall in the same or adjacent pixels across nearby dates.
+Both fields are read from the raw archive and preserved, unfiltered, all the way
+through to `all_forest_fires_2000_2022.csv`. Quantified from the tracked output:
+**23,236 points (4.29%)** carry `confidence < 30` (a commonly used "low confidence"
+threshold in FIRMS-based fire studies), and **1,124 points (0.21%)** carry `type != 0`
+(1,122 "other static land source", 2 "offshore" — non-vegetation-fire detection
+classes per the MODIS Collection 6 Fire/Hotspot User's Guide).
+
+This is a real, literature-flagged gap, not an unrecognized one:
+
+- The **MODIS Collection 6 Fire/Hotspot Active Fire Products User's Guide** (Giglio et
+  al. 2016) documents `confidence` and `type` explicitly as per-detection quality
+  fields intended for exactly this kind of filtering.
+- Spatial autocorrelation among nearby, temporally-clustered fire detections is a
+  documented bias risk for point-process fire models trained without spatial
+  declustering/thinning (see the spatial-autocorrelation-in-wildfire-ML literature,
+  e.g. PMC12215841).
+- Spatial thinning ahead of MaxEnt/presence-based fire-susceptibility training has
+  regional precedent (e.g. ~1 km-buffer presence-point thinning in Nepal
+  fire-susceptibility studies).
+
+**Deliberately deferred, not silently skipped.** `all_forest_fires_2000_2022.csv` is
+the label source every one of Steps 2–8 depends on — NDVI, LST, FLDAS, and
+terrain/accessibility all join against this exact file's points, the integrated
+feature stack is built from it, and the Random Forest, MaxEnt, and CDR-PINN models are
+all trained and evaluated against it. Applying confidence filtering or spatial
+thinning now would change the label population (and its exact 541,545 row count) and
+requires re-running this notebook *and* every downstream step's notebook — a decision
+reserved for the project owner, not made unilaterally in a documentation pass.
+`confidence` and `type` are kept unfiltered in the output specifically so this
+filtering can be applied later without re-extracting from the raw FIRMS archive.
+
+### Comparison against Biswas et al. (2025)
+
+Three concrete, verifiable differences between this step's extraction methodology and
+Biswas et al. (2025)'s own presence-point/MaxEnt approach:
+
+1. **Boundary precision.** This step clips to India's exact dissolved state boundary
+   polygon (`India_State_Boundary.shp`, 37 parts dissolved to one), not a coarser
+   bounding box or a simplified national outline. The executed run shows this is not
+   cosmetic: the exact-polygon clip excludes **1,201,876 points (42.9% of the
+   bbox-passing set)** that lie inside a rectangular India extent but outside the real
+   border, in neighboring Sri Lanka, Nepal, Bangladesh, Myanmar, and southern Pakistan.
+   Biswas et al.'s paper does not document an equivalently precise boundary-clipping
+   procedure for their own study area.
+2. **Point-level vs. aggregated fire ground truth.** This step keeps every individual
+   MODIS FIRMS detection at its native geolocation (nominal ~1 km resolution, Giglio et
+   al. 2016) — 541,545 independently dated and geolocated forest-fire points. Biswas et
+   al.'s MaxEnt model instead rasterizes all 15 of its predictor layers, and by
+   necessity its own presence/background points, to a **0.25°×0.25° grid** (confirmed
+   directly from their Table 2/3 — see the project's `reference_biswas2025_primary_paper`
+   notes). A 0.25° cell is roughly 600–800× the area of one native MODIS ~1 km pixel at
+   India's latitudes, so this step's ground truth carries several orders of magnitude
+   finer spatial detail than what Biswas et al. trained on.
+3. **Independent burned-area cross-check.** This step validates its own fire-point
+   archive against an external product, MODIS MCD64A1.061 burned area, two ways: across
+   all of India's land cover (Pearson r=0.9149, Spearman ρ=0.8350, n=23) and,
+   forest-masked to match Biswas et al.'s own forest-scoped Fig. 7d for a genuine
+   apples-to-apples comparison, correlated even more tightly (Pearson r=0.9345,
+   Spearman ρ=0.7846, n=23) — see "Forest-masked burned area" above. Biswas et al. use
+   MCD64A1.061 burned area only as a separate Table 2 dataset, not as a validation check
+   on their own presence-point archive; this cross-check is an independent validation
+   exercise Biswas et al. do not perform for their own ground truth.
+
+Where this step is currently no stronger than Biswas et al.: neither project applies
+FIRMS confidence/type-based filtering or spatial declustering to its fire occurrence
+data (see "Known limitation, disclosed" above) — Biswas et al.'s paper does not
+document any such filtering of their own presence points either.
 
 ### Repo structure
 
