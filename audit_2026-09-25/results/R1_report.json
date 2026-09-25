@@ -1,0 +1,169 @@
+{
+ "provenance": {
+  "timestamp": "2026-09-24T16:28:36",
+  "script": "results\\code\\recalc_01_fire_labels.py",
+  "script_sha256": "4ce90df5d66881ebe7661eb359cc0f3b289d57e71cc1b5f53be7f52d9561a80f",
+  "repo_commits": {
+   "Forest fire Extraction in INDIA(2000-2022)": "a01fadb",
+   "NDVI_DATA_INDIA_": "1c274d6",
+   "LST_analysis": "7e5d870",
+   "FLDAS Noah Land Surface Model L4 Global Monthly 0.1 x 0.1 degree (MERRA-2 and CHIRPS) (FLDAS_NOAH01_C_GL_M)": "4dbe755",
+   "Terrain_Elevation_Slope_Aspect_Analysis": "e48a4a9",
+   "Distance_Roads_Railways_Waterways_Analysis": "c74ab6b",
+   "Integrated_Analysis": "3fcc34c",
+   "Physics_Informed_FireRisk_Model": "cd1d298"
+  },
+  "root_commit": "fb0d8aa"
+ },
+ "boundary_sensitivity_points_in_bbox": {
+  "state": 1599471,
+  "country": 1599210,
+  "gadm": 1598000
+ },
+ "boundary_sensitivity_disagreement": {
+  "state_not_country": 267,
+  "country_not_state": 6,
+  "state_not_gadm": 5120,
+  "gadm_not_state": 3649
+ },
+ "lulc_years_missing_in_study_period": [],
+ "stage_counts": {
+  "raw_archive": 2804373,
+  "valid_rows": 2804373,
+  "india_bbox": 2801347,
+  "india_polygon_state": 1599471,
+  "study_period": 1599471,
+  "dedup_lon_lat_date": 1599466,
+  "forest_filter": 541545
+ },
+ "historical_csv_comparison": {
+  "recalc": 541545,
+  "historical": 541545,
+  "common": 541545,
+  "recalc_only": 0,
+  "historical_only": 0
+ },
+ "firms_fields": {
+  "confidence_lt30": 23236,
+  "confidence_lt30_pct": 4.29068683119593,
+  "confidence_quantiles": {
+   "0.05": 31.0,
+   "0.25": 53.0,
+   "0.5": 67.0,
+   "0.75": 80.0
+  },
+  "type_counts": {
+   "0": 540421,
+   "2": 1122,
+   "3": 2
+  },
+  "type_nonzero_pct": 0.20755431219935555,
+  "satellite": {
+   "Aqua": 410660,
+   "Terra": 130885
+  },
+  "daynight": {
+   "D": 495301,
+   "N": 46244
+  },
+  "exact_duplicate_rows": 0,
+  "same_lat_lon_different_day": 120
+ },
+ "rasterisation": {
+  "points": 541545,
+  "out_of_grid": 0,
+  "outside_india_mask": 412,
+  "outside_ndvi_valid": 528
+ },
+ "label_variants": {
+  "all": {
+   "points": 541545,
+   "fire_pixels_grid": 268766,
+   "fire_pixels_in_ndvi_valid": 268411,
+   "points_in_ndvi_valid": 541017
+  },
+  "conf_ge30": {
+   "points": 518309,
+   "fire_pixels_grid": 261774,
+   "fire_pixels_in_ndvi_valid": 261430,
+   "points_in_ndvi_valid": 517803
+  },
+  "type0": {
+   "points": 540421,
+   "fire_pixels_grid": 268611,
+   "fire_pixels_in_ndvi_valid": 268257,
+   "points_in_ndvi_valid": 539895
+  },
+  "conf_ge30_type0": {
+   "points": 517234,
+   "fire_pixels_grid": 261622,
+   "fire_pixels_in_ndvi_valid": 261279,
+   "points_in_ndvi_valid": 516730
+  },
+  "years_2001_2020": {
+   "points": 480497,
+   "fire_pixels_grid": 248746,
+   "fire_pixels_in_ndvi_valid": 248424,
+   "points_in_ndvi_valid": 480030
+  },
+  "year_2020_only": {
+   "points": 16421,
+   "fire_pixels_grid": 15284,
+   "fire_pixels_in_ndvi_valid": 15263,
+   "points_in_ndvi_valid": 16400
+  }
+ },
+ "F10_comparison": {
+  "name": "fire_count vs F10_fire_count_Step1.tif",
+  "n_compared": 12758064,
+  "n_nan_new_only": 0,
+  "n_nan_old_only": 0,
+  "max_abs_diff": 215.0,
+  "mean_abs_diff": 0.03485340722542229,
+  "rmse": 0.2856870411416866,
+  "pearson_r": 0.7144618669975005,
+  "new_mean": 0.04244727099660262,
+  "old_mean": 0.04244727099660262,
+  "frac_exact": 0.9770398549497792,
+  "frac_within_1e4_rel": 0.9770398549497792,
+  "hist_sum": 541545.0,
+  "recalc_sum": 541545
+ },
+ "same_pixel_same_day_multiple_detections": 11349,
+ "biswas_counts": {
+  "sum_of_pcts": 99.99,
+  "decade_totals_sum": 475950,
+  "this_study_2001_2020": 480497,
+  "diff_pct_range": [
+   0.5120489072788077,
+   2.4267254963756555
+  ],
+  "pearson_r": 0.9999631836788166
+ },
+ "annual_counts": {
+  "2000": 225,
+  "2001": 6007,
+  "2002": 4290,
+  "2003": 22348,
+  "2004": 28668,
+  "2005": 22270,
+  "2006": 27241,
+  "2007": 29008,
+  "2008": 23356,
+  "2009": 40155,
+  "2010": 31108,
+  "2011": 22513,
+  "2012": 35214,
+  "2013": 22245,
+  "2014": 23844,
+  "2015": 20258,
+  "2016": 28903,
+  "2017": 26462,
+  "2018": 29028,
+  "2019": 21158,
+  "2020": 16421,
+  "2021": 38116,
+  "2022": 22707
+ },
+ "runtime_sec": 83.25341773033142
+}

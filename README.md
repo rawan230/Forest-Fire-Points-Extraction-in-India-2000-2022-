@@ -1,5 +1,15 @@
 # 🌲🔥 Forest Fire Mapping — India
 
+<!-- AUDIT-UPDATE-2026-09-25 -->
+> ### Audit update (2026-09-25)
+> This repository's step was recalculated independently from the raw data in a full end-to-end audit.
+> **Corrected results, reproduction checks and audit code: [`AUDIT_2026-09-25.md`](AUDIT_2026-09-25.md)** and `audit_2026-09-25/`.
+> Earlier text below is kept for the record (it also remains in the git history). Statements superseded by the audit:
+>
+> - **'National forest cover 9.86–10.43%'**: computed over the download rectangle. For India only it is **18.3–19.3%**.
+<!-- AUDIT-UPDATE-2026-09-25 -->
+
+
 A multi-step pipeline for mapping and analyzing forest fires across India using
 MODIS fire detections and ESA-CCI/C3S land-use/land-cover (LULC) data.
 
