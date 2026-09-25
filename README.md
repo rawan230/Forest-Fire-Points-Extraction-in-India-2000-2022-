@@ -7,6 +7,12 @@
 > Earlier text below is kept for the record (it also remains in the git history). Statements superseded by the audit:
 >
 > - **'National forest cover 9.86–10.43%'**: computed over the download rectangle. For India only it is **18.3–19.3%**.
+>
+> **Pipeline rerun (2026-09-25).** `build_notebook.py` was updated and the notebook regenerated and re-executed end-to-end:
+> - Forest cover is now reported inside India's polygon, alongside the historical rectangle value.
+> - A FIRMS quality-field summary cell was added.
+>
+> The fire-point output `all_forest_fires_2000_2022.csv` is **byte-identical** to the previous version (SHA-256 `ca09d1e7…`, 541,545 points), so every downstream step's label is unchanged.
 <!-- AUDIT-UPDATE-2026-09-25 -->
 
 
@@ -120,34 +126,37 @@ reproducible by re-running the notebook (see `.gitignore`).
 
 - **1,599,466** total MODIS fire points inside India after boundary clip + dedup
 - **541,545** of those fall on forest LULC pixels
-- Forest cover held steady at **~9.9–10.4%** of India's land area over the period
+- Forest cover held steady at **18.3–19.3%** of India's land area over the period
+  (rerun 2026-09-25, computed inside India's boundary polygon; the earlier 9.9–10.4% figure
+  was computed over the whole rectangular LULC download subset, including neighbouring
+  countries and ocean, and is kept in the table below only for traceability)
 - Peak year: **2021** (111,467 total fire points, 38,116 forest fires)
 
-| Year | Total fires | Forest fires | Forest fire % | Forest cover % |
-|---:|---:|---:|---:|---:|
-| 2000 | 1,419 | 225 | 15.86 | 9.86 |
-| 2001 | 18,844 | 6,007 | 31.88 | 9.95 |
-| 2002 | 26,939 | 4,290 | 15.92 | 9.95 |
-| 2003 | 56,119 | 22,348 | 39.82 | 9.97 |
-| 2004 | 64,757 | 28,668 | 44.27 | 10.01 |
-| 2005 | 63,737 | 22,270 | 34.94 | 10.00 |
-| 2006 | 66,195 | 27,241 | 41.15 | 10.00 |
-| 2007 | 75,413 | 29,008 | 38.47 | 10.01 |
-| 2008 | 71,025 | 23,356 | 32.88 | 10.01 |
-| 2009 | 90,500 | 40,155 | 44.37 | 10.01 |
-| 2010 | 76,894 | 31,108 | 40.46 | 10.01 |
-| 2011 | 72,441 | 22,513 | 31.08 | 10.02 |
-| 2012 | 93,536 | 35,214 | 37.65 | 9.91 |
-| 2013 | 71,219 | 22,245 | 31.23 | 10.02 |
-| 2014 | 76,638 | 23,844 | 31.11 | 10.02 |
-| 2015 | 68,553 | 20,258 | 29.55 | 10.02 |
-| 2016 | 89,354 | 28,903 | 32.35 | 10.13 |
-| 2017 | 82,729 | 26,462 | 31.99 | 10.17 |
-| 2018 | 91,342 | 29,028 | 31.78 | 10.19 |
-| 2019 | 75,693 | 21,158 | 27.95 | 10.27 |
-| 2020 | 76,149 | 16,421 | 21.56 | 10.30 |
-| 2021 | 111,467 | 38,116 | 34.19 | 10.33 |
-| 2022 | 78,503 | 22,707 | 28.93 | 10.43 |
+| Year | Total fires | Forest fires | Forest fire % | Forest cover % (India) | Forest cover % (download rectangle, historical) |
+|---:|---:|---:|---:|---:|---:|
+| 2000 | 1,419 | 225 | 15.86 | 18.30 | 9.86 |
+| 2001 | 18,844 | 6,007 | 31.88 | 18.28 | 9.95 |
+| 2002 | 26,939 | 4,290 | 15.92 | 18.28 | 9.95 |
+| 2003 | 56,119 | 22,348 | 39.82 | 18.31 | 9.97 |
+| 2004 | 64,757 | 28,668 | 44.27 | 18.37 | 10.01 |
+| 2005 | 63,737 | 22,270 | 34.94 | 18.35 | 10.00 |
+| 2006 | 66,195 | 27,241 | 41.15 | 18.35 | 10.00 |
+| 2007 | 75,413 | 29,008 | 38.47 | 18.38 | 10.01 |
+| 2008 | 71,025 | 23,356 | 32.88 | 18.38 | 10.01 |
+| 2009 | 90,500 | 40,155 | 44.37 | 18.38 | 10.01 |
+| 2010 | 76,894 | 31,108 | 40.46 | 18.39 | 10.01 |
+| 2011 | 72,441 | 22,513 | 31.08 | 18.39 | 10.02 |
+| 2012 | 93,536 | 35,214 | 37.65 | 18.38 | 9.91 |
+| 2013 | 71,219 | 22,245 | 31.23 | 18.38 | 10.02 |
+| 2014 | 76,638 | 23,844 | 31.11 | 18.37 | 10.02 |
+| 2015 | 68,553 | 20,258 | 29.55 | 18.37 | 10.02 |
+| 2016 | 89,354 | 28,903 | 32.35 | 18.59 | 10.13 |
+| 2017 | 82,729 | 26,462 | 31.99 | 18.70 | 10.17 |
+| 2018 | 91,342 | 29,028 | 31.78 | 18.75 | 10.19 |
+| 2019 | 75,693 | 21,158 | 27.95 | 18.93 | 10.27 |
+| 2020 | 76,149 | 16,421 | 21.56 | 19.01 | 10.30 |
+| 2021 | 111,467 | 38,116 | 34.19 | 19.09 | 10.33 |
+| 2022 | 78,503 | 22,707 | 28.93 | 19.33 | 10.43 |
 
 All 27 study years (2000–2022) now use **real** ESA-CCI/C3S LULC data — no
 nearest-year fallback is used anywhere in this range.
@@ -245,6 +254,13 @@ requires re-running this notebook *and* every downstream step's notebook — a d
 reserved for the project owner, not made unilaterally in a documentation pass.
 `confidence` and `type` are kept unfiltered in the output specifically so this
 filtering can be applied later without re-extracting from the raw FIRMS archive.
+
+**Resolved by the 2026-09-25 audit (null result).** The audit re-trained the Random
+Forest with the filters applied: dropping `confidence < 30` points, `type != 0` points,
+or both changes ROC-AUC by **less than 0.001**. The unfiltered label set is therefore
+kept. The notebook now writes these quality counts to
+`Forest_Fire_Outputs/firms_quality_summary.json` on every run (confidence < 30: 23,236 =
+4.29%; type 2: 1,122; type 3: 2; Aqua 410,660 / Terra 130,885; day 495,301 / night 46,244).
 
 ### Comparison against Biswas et al. (2025)
 

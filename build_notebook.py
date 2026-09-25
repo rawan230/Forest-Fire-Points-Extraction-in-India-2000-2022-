@@ -425,10 +425,33 @@ def points_to_pixel_indices(lat_arr, lon_arr, pt_lats, pt_lons):
     return row, col
 
 
+_india_mask_cache = {}
+
+
+def india_mask_for_grid(lat, lon):
+    # Rasterise India's polygon onto this LCCS grid (cached by grid). Audit 2026-09-25: the
+    # historical forest_pct was computed over the whole rectangular download subset
+    # (incl. neighbouring countries and ocean), NOT over India.
+    key = (len(lat), len(lon), float(lat[0]), float(lon[0]))
+    if key not in _india_mask_cache:
+        from rasterio.features import rasterize
+        from rasterio.transform import from_origin
+        dlat, dlon = abs(float(lat[1] - lat[0])), float(lon[1] - lon[0])
+        north = float(max(lat[0], lat[-1])) + dlat / 2
+        tr = from_origin(float(lon[0]) - dlon / 2, north, dlon, dlat)
+        m = rasterize([(INDIA_POLYGON, 1)], out_shape=(len(lat), len(lon)), transform=tr, fill=0, dtype="uint8").astype(bool)
+        if lat[0] < lat[-1]:  # ascending latitude -> flip to the array's row order
+            m = m[::-1]
+        _india_mask_cache[key] = m
+    return _india_mask_cache[key]
+
+
 def extract_forest_fires(fire_year_df, nc_path, forest_codes):
     lulc, lat, lon = load_lulc_grid(nc_path)
     forest_mask = build_forest_mask(lulc, forest_codes)
-    forest_pct  = float(100.0 * cp.sum(forest_mask == 1) / forest_mask.size)
+    forest_pct  = float(100.0 * cp.sum(forest_mask == 1) / forest_mask.size)   # download rectangle (historical definition)
+    imask = cp.asarray(india_mask_for_grid(lat, lon))
+    forest_pct_india = float(100.0 * cp.sum((forest_mask == 1) & imask) / cp.sum(imask))
 
     row, col = points_to_pixel_indices(
         lat, lon,
@@ -437,7 +460,7 @@ def extract_forest_fires(fire_year_df, nc_path, forest_codes):
     )
     is_forest = to_host(forest_mask[row, col].astype(bool))
 
-    return fire_year_df[is_forest].copy(), forest_pct
+    return fire_year_df[is_forest].copy(), forest_pct, forest_pct_india
 
 
 print("✅ GPU extraction functions defined:")
@@ -472,7 +495,7 @@ for year in tqdm(range(START_YEAR, END_YEAR + 1), desc="Years"):
         continue
 
     try:
-        ff_yr, forest_pct = extract_forest_fires(fire_yr, nc_path, FOREST_CODES)
+        ff_yr, forest_pct, forest_pct_india = extract_forest_fires(fire_yr, nc_path, FOREST_CODES)
     except Exception as e:
         print(f"  {year}: ERROR -> {e}")
         continue
@@ -495,11 +518,12 @@ for year in tqdm(range(START_YEAR, END_YEAR + 1), desc="Years"):
         "total_fire_points": len(fire_yr),
         "forest_fire_points": len(ff_yr),
         "forest_fire_pct"  : round(100 * len(ff_yr) / max(1, len(fire_yr)), 2),
-        "forest_cover_pct" : round(forest_pct, 2),
+        "forest_cover_pct_download_rectangle": round(forest_pct, 2),
+        "forest_cover_pct_india": round(forest_pct_india, 2),
     })
 
     print(f"  {year}: total={len(fire_yr):6,} | forest={len(ff_yr):6,} "
-          f"({100*len(ff_yr)/max(1,len(fire_yr)):.1f}%) | cover={forest_pct:.1f}%")
+          f"({100*len(ff_yr)/max(1,len(fire_yr)):.1f}%) | forest cover India={forest_pct_india:.1f}% (rectangle {forest_pct:.1f}%)")
 
 elapsed = time.time() - t0
 
@@ -518,6 +542,26 @@ print(f"\nAnnual summary:")
 print(summary_df.to_string(index=False))
 print(f"\nDone in {elapsed:.1f}s "
       f"({'GPU' if GPU_AVAILABLE else 'CPU'}-accelerated, {END_YEAR-START_YEAR+1} years)")
+"""))
+
+cells.append(md(r"""### FIRMS quality fields (audit 2026-09-25)
+The extraction applies **no** confidence or `type` filter. The audit tested both: removing
+confidence < 30 and/or type != 0 changes Random-Forest ROC-AUC by < 0.001 (a documented
+null result), so the unfiltered set is kept. The counts are reported here for transparency."""))
+
+cells.append(code(r"""qa = dict(
+    confidence_lt30=int((all_ff["confidence"] < 30).sum()),
+    confidence_lt30_pct=round(100 * float((all_ff["confidence"] < 30).mean()), 2),
+    type_counts={int(k): int(v) for k, v in all_ff["type"].value_counts().items()},
+    type_nonzero_pct=round(100 * float((all_ff["type"] != 0).mean()), 2),
+    satellite={str(k): int(v) for k, v in all_ff["satellite"].value_counts().items()},
+    daynight={str(k): int(v) for k, v in all_ff["daynight"].value_counts().items()},
+)
+import json
+with open(os.path.join(OUTPUT_DIR, "firms_quality_summary.json"), "w") as fh:
+    json.dump(qa, fh, indent=1)
+for k, v in qa.items():
+    print(f"   {k:22s}: {v}")
 """))
 
 # ── Step 9 ──────────────────────────────────────────────
@@ -624,7 +668,7 @@ plt.show(); print("Plot 5 saved.")
 fig, ax1 = plt.subplots(figsize=(14, 5))
 ax2 = ax1.twinx()
 ax1.bar(summary_df["year"], summary_df["forest_fire_points"], color="#c1121f", alpha=0.6, label="Forest Fires")
-ax2.plot(summary_df["year"], summary_df["forest_cover_pct"], "s-", color="#2d6a4f",
+ax2.plot(summary_df["year"], summary_df["forest_cover_pct_india"], "s-", color="#2d6a4f",
          linewidth=2, markersize=6, label="Forest Cover %")
 ax1.set_xlabel("Year"); ax1.set_ylabel("Forest Fire Points", color="#c1121f")
 ax2.set_ylabel("Forest Cover %", color="#2d6a4f")

@@ -1,0 +1,18 @@
+{
+ "confidence_lt30": 23236,
+ "confidence_lt30_pct": 4.29,
+ "type_counts": {
+  "0": 540421,
+  "2": 1122,
+  "3": 2
+ },
+ "type_nonzero_pct": 0.21,
+ "satellite": {
+  "Aqua": 410660,
+  "Terra": 130885
+ },
+ "daynight": {
+  "D": 495301,
+  "N": 46244
+ }
+}
